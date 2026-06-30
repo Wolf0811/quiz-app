@@ -1,0 +1,27 @@
+name: Build APK
+on: [push, workflow_dispatch]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.8'
+      - name: Install Buildozer dependencies
+        run: |
+          sudo apt update
+          sudo apt install -y git zip unzip openjdk-8-jdk python3-pip autoconf libtool libssl-dev
+          pip install --upgrade Cython==0.29.33 virtualenv buildozer
+      - name: Build APK
+        run: |
+          export ANDROIDSDK="$HOME/.buildozer/android/platform/android-sdk"
+          export ANDROIDNDK="$HOME/.buildozer/android/platform/android-ndk-r19c"
+          buildozer android debug
+      - name: Upload APK
+        uses: actions/upload-artifact@v3
+        with:
+          name: QuizApp-APK
+          path: bin/*.apk
