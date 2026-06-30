@@ -15,15 +15,10 @@ android.api = 30
 android.minapi = 21
 android.gradle_dependencies = 
 android.arch = armeabi-v7a
-# (可选) 如果需要 64 位 APK，取消下一行注释
-# android.arch = arm64-v8a
+# 新增下面两行（必须）
+android.accept_sdk_license = True
+android.build_tools_version = 33.0.3
 p4a.branch = master
-p4a.source_dir = 
-p4a.bootstrap = sdl2
-ios.kivy_ios_url = https://github.com/kivy/kivy-ios
-ios.kivy_ios_branch = master
-ios.ios_deploy_version = 9.0
-ios.ios_deploy_target = 9.0
 [buildozer]
 log_level = 2
 warn_on_root = 1
