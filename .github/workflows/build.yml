@@ -16,9 +16,17 @@ jobs:
         run: |
           sudo dpkg --add-architecture i386
           sudo apt update
-          sudo apt install -y git zip unzip openjdk-17-jdk python3-pip autoconf libtool libssl-dev libltdl-dev python3-dev
-          # 安装 Cython、Buildozer 和 Kivy，以便 p4a 找到 kivy/include/config.pxi
-          pip install --upgrade "Cython==0.29.33" virtualenv buildozer kivy==2.1.0
+          sudo apt install -y git zip unzip openjdk-17-jdk python3-pip \
+              autoconf libtool libssl-dev libltdl-dev python3-dev
+          python3 -m pip install --upgrade pip setuptools wheel
+          # 只安装 Cython 和 buildozer，不安装 kivy
+          python3 -m pip install --upgrade "Cython==0.29.33" virtualenv buildozer
+
+      # 新增步骤：下载 Kivy 2.1.0 源码，供 p4a 编译时使用
+      - name: Download Kivy source
+        run: |
+          git clone --depth 1 --branch 2.1.0 https://github.com/kivy/kivy.git /tmp/kivy
+          echo "P4A_KIVY_DIR=/tmp/kivy" >> $GITHUB_ENV
           
       - name: Build APK
         run: |
