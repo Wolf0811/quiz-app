@@ -1,80 +1,33 @@
-name: 'Kivy App to APK'
-description: 'Convert Kivy app to APK'
-inputs:
-  python-version:
-    description: 'Python version to use'
-    default: '3.8'
-  work-dir:
-    default: '.'
-    description: 'Working directory'
-  buildozer-cmd:
-    default: 'buildozer android debug'
-    description: 'Buildozer command to use'
+name: Build APK
+on: [push, workflow_dispatch]
 
-# Add the branding section
-branding:
-  color: 'green'
-  icon: 'play'
-
-runs:
-  using: "composite"
-  steps:
-    - name: Setup python
-      uses: actions/setup-python@v5
-      with:
-        architecture: x64
-        python-version: ${{ inputs.python-version }}
-
-    - name: Setup Java 17 required by Gradle
-      uses: actions/setup-java@v4
-      with:
-        distribution: 'temurin'  # or 'zulu','liberica', etc.
-        java-version: '17'
-
-    - name: Set JAVA_HOME
-      run: |
-        echo "JAVA_HOME=$JAVA_HOME" >> $GITHUB_ENV
-      shell: bash
-
-    - name: Prepare virtual environment
-      run: |
-        python3 -m venv venv
-        source venv/bin/activate
-        echo "Using Python==$(python --version)"
-      shell: bash
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
       
-    - name: Install and upgrade dependencies
-      run: |
-        sudo apt update
-        sudo apt install -y git \
-          zip \
-          unzip \
-          openjdk-17-jdk \
-          python3-pip \
-          autoconf \
-          libtool \
-          pkg-config \
-          zlib1g-dev \
-          libncurses5-dev \
-          libncursesw5-dev \
-          libtinfo5 \
-          cmake \
-          libffi-dev \
-          libssl-dev
-        export PATH=$PATH:~/.local/bin/
-        python3 -m pip install --upgrade \
-          Cython==0.29.33 \
-          buildozer
-      shell: bash
-
-    - name: Install requirements in requirements.txt if it exists
-      run: |
-        if [ -f requirements.txt ]; then
-          python3 -m pip install -r requirements.txt
-        fi
-      shell: bash
-
-    - name: Build with Buildozer
-      run: |
-        ${{ inputs.buildozer-cmd }}
-      shell: bash
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.9'
+          
+      - name: Install system dependencies
+        run: |
+          sudo dpkg --add-architecture i386
+          sudo apt update
+          sudo apt install -y git zip unzip openjdk-17-jdk python3-pip autoconf libtool libssl-dev libltdl-dev python3-dev
+          # 安装 Cython、Buildozer 和 Kivy，以便 p4a 找到 kivy/include/config.pxi
+          pip install --upgrade "Cython==0.29.33" virtualenv buildozer kivy==2.1.0
+          
+      - name: Build APK
+        run: |
+          export ANDROIDSDK="$HOME/.buildozer/android/platform/android-sdk"
+          export ANDROIDNDK="$HOME/.buildozer/android/platform/android-ndk-r28c"
+          buildozer android debug
+          
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: QuizApp-APK
+          path: bin/*.apk
