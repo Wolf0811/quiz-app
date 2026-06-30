@@ -3,25 +3,26 @@ on: [push, workflow_dispatch]
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
       
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.8'
+          python-version: '3.9'
           
-      - name: Install Buildozer dependencies
+      - name: Install system dependencies
         run: |
+          sudo dpkg --add-architecture i386
           sudo apt update
-          sudo apt install -y git zip unzip openjdk-8-jdk python3-pip autoconf libtool libssl-dev
+          sudo apt install -y git zip unzip openjdk-17-jdk python3-pip autoconf libtool libssl-dev libltdl-dev
           pip install --upgrade Cython==0.29.33 virtualenv buildozer
           
       - name: Build APK
         run: |
           export ANDROIDSDK="$HOME/.buildozer/android/platform/android-sdk"
-          export ANDROIDNDK="$HOME/.buildozer/android/platform/android-ndk-r19c"
+          export ANDROIDNDK="$HOME/.buildozer/android/platform/android-ndk-r28c"
           buildozer android debug
           
       - name: Upload APK
